@@ -63,6 +63,10 @@ M.useBP = function()
     end
 end
 
+M.listBP = function()
+    print(vim.inspect(BP_Table))
+end
+
 M.setup()
 
 return M
