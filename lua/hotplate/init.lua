@@ -22,6 +22,16 @@ local function writeUserData()
     Path:new(userData):write(vim.fn.json_encode(BP_Table), "w")
 end
 
+local function getKeys(inputTable)
+    local keys = {}
+    local n = 0
+    for key, val in pairs(inputTable) do
+        n = n+1
+        keys[n] = key
+    end
+    return keys
+end
+
 M.setup = function()
     local ok
     ok, BP_Table = pcall(readUserData, userData)
@@ -49,19 +59,24 @@ M.addBP = function()
 end
 
 M.removeBP = function()
-    local name = getName('Enter name to remove: \n')
+    local name
+    local keys = getKeys(BP_Table)
+    vim.ui.select(keys, {
+        prompt = 'Select boilierplate to delete',
+        format_item = function(item)
+            return(item)
+        end,
+    }, function(choice)
+        name = choice
+    end)
+
     BP_Table[name] = nil
     writeUserData()
 end
 
 M.useBP = function()
     local name
-    local keys = {}
-    local n = 0
-    for key, val in pairs(BP_Table) do
-        n = n+1
-        keys[n] = key
-    end
+    local keys = getKeys(BP_Table)
     vim.ui.select(keys, {
         prompt = 'Select boilierplate to use',
         format_item = function(item)
