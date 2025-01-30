@@ -53,6 +53,11 @@ local function closeWindow()
     end
 end
 
+local function updateUi(buf)
+        local keys = utils.getKeys(BP_Table)
+        vim.api.nvim_buf_set_text(buf, -1, -1, -1, -1, keys)
+end
+
 M.toggleFloat = function()
     if M.winId ~= nil then
         closeWindow()
@@ -98,6 +103,7 @@ M.deleteItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
     hotplate.removeBP(value)
+    updateUi(M.bufId)
 end
 
 return M
