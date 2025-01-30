@@ -1,40 +1,11 @@
-local Path = require("plenary.path")
-
-local dataPath = vim.fn.stdpath('data')
-local userData = string.format("%s/hotplate.json", dataPath)
-
+local utils = require('hotplate.utils')
 local M = {}
 BP_Table = {}
 
-local function getName(prompt)
-    local name
-    vim.ui.input({ prompt = prompt }, function(input)
-       name = input
-    end)
-    return name
-end
-
-local function readUserData(localData)
-    return vim.json.decode(Path:new(localData):read())
-end
-
-local function writeUserData()
-    Path:new(userData):write(vim.fn.json_encode(BP_Table), "w")
-end
-
-local function getKeys(inputTable)
-    local keys = {}
-    local n = 0
-    for key, val in pairs(inputTable) do
-        n = n+1
-        keys[n] = key
-    end
-    return keys
-end
-
 M.setup = function()
     local ok
-    ok, BP_Table = pcall(readUserData, userData)
+    -- calling readutils.userData with param userData
+    ok, BP_Table = pcall(utils.readUserData, utils.userData)
 
     if not ok then
         print('failed to read user data')
@@ -43,9 +14,9 @@ M.setup = function()
 end
 
 M.addBP = function()
-    local name = getName('Enter boilierplate name: \n')
+    local name = utils.getName('Enter boilierplate name: \n')
 
-    -- gathering starting and end position of selection 
+    -- gathering starting and end position of selection
     local vStart = vim.fn.getpos(".")
     local vEnd = vim.fn.getpos("v")
     -- start and end line only
@@ -53,48 +24,40 @@ M.addBP = function()
     local endPos = vEnd[2]
     -- gathering all selected terms into table
     local totalSelect = vim.fn.getline(startPos, endPos)
+    -- non-blocking look for alternative
+    vim.api.nvim_input("<esc>")
 
     BP_Table[name] = totalSelect
-    writeUserData()
+    utils.writeUserData()
 end
 
-M.removeBP = function()
-    local name
-    local keys = getKeys(BP_Table)
-    vim.ui.select(keys, {
-        prompt = 'Select boilierplate to delete',
-        format_item = function(item)
-            return(item)
-        end,
-    }, function(choice)
-        name = choice
-    end)
+M.removeBP = function(name)
+--    local name
+    local keys = utils.getKeys(BP_Table)
+--    vim.ui.select(keys, {
+--        prompt = 'Select boilierplate to delete',
+--        format_item = function(item)
+--            return (item)
+--        end,
+--    }, function(choice)
+--        name = choice
+--    end)
 
     BP_Table[name] = nil
-    writeUserData()
+    utils.writeUserData()
 end
 
-M.useBP = function()
-    local name
-    local keys = getKeys(BP_Table)
-    vim.ui.select(keys, {
-        prompt = 'Select boilierplate to use',
-        format_item = function(item)
-            return(item)
-        end,
-    }, function(choice)
-        name = choice
-    end)
-
-    if BP_Table[name] then
-        vim.api.nvim_put(BP_Table[name], "", true, true)
+M.useBP = function(value)
+    if BP_Table[value] then
+        vim.api.nvim_put(BP_Table[value], "", true, true)
     else
         print('provided name is empty')
     end
 end
 
-M.listBP = function()
-    vim.notify(vim.inspect(BP_Table), INFO)
+M.clearBP = function()
+    BP_Table = {}
+    utils.writeUserData()
 end
 
 M.setup()
