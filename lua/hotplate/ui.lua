@@ -108,10 +108,8 @@ end
 M.deleteItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
-    print(vim.inspect(vim.api.nvim_buf_get_lines(M.bufId, 0, 1, false)))
     hotplate.removeBP(value)
     updateUi(M.bufId)
-    print(vim.inspect(vim.api.nvim_buf_get_lines(M.bufId, 0, 1, false)))
 end
 
 return M
