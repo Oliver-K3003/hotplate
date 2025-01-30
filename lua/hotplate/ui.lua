@@ -8,15 +8,15 @@ M.winId = nil
 
 local function createWindow()
     local bufId, winId
-    -- if no buffer exists make one
+    -- creating a buffer & fill it with current bp list
     bufId = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(bufId, "buftype", "acwrite")
     if BP_Table ~= nil then
         local keys = utils.getKeys(BP_Table)
         vim.api.nvim_buf_set_text(bufId, -1, -1, -1, -1, keys)
     end
 
-    -- setup centering
+    -- window centering
+    vim.api.nvim_buf_set_option(bufId, "buftype", "acwrite")
     local ui = vim.api.nvim_list_uis()[1]
     local col = 15
     local row = 12
@@ -27,6 +27,7 @@ local function createWindow()
         row = math.floor((ui.height-height)/2)
     end
 
+    -- open window
     winId = vim.api.nvim_open_win(bufId, true, {
         relative='win',
         row=row,
@@ -42,7 +43,7 @@ local function createWindow()
 end
 
 local function closeWindow()
-    -- if window exists close it
+    -- if window/buffer exists close it
     if vim.api.nvim_win_is_valid(M.winId) then
         vim.api.nvim_win_close(M.winId, true)
         M.winId = nil
@@ -54,21 +55,25 @@ local function closeWindow()
 end
 
 local function updateUi(buf)
-        local keys = utils.getKeys(BP_Table)
-        vim.api.nvim_buf_set_text(buf, -1, -1, -1, -1, keys)
+    -- refresh ui with new list upon delete
+    local keys = utils.getKeys(BP_Table)
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, keys)
 end
 
 M.toggleFloat = function()
+    -- if window exists close it
     if M.winId ~= nil then
         closeWindow()
         return
     end
 
+    -- if no window exists create one
     local winInfo = createWindow()
 
     M.winId = winInfo.windowId
     M.bufId = winInfo.bufferId
 
+    -- set keymaps for closing, selecting, and deleting
     vim.api.nvim_buf_set_keymap(
     M.bufId,
     "n",
@@ -96,14 +101,17 @@ end
 M.selectItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
+    M.toggleFloat()
     hotplate.useBP(value)
 end
 
 M.deleteItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
+    print(vim.inspect(vim.api.nvim_buf_get_lines(M.bufId, 0, 1, false)))
     hotplate.removeBP(value)
     updateUi(M.bufId)
+    print(vim.inspect(vim.api.nvim_buf_get_lines(M.bufId, 0, 1, false)))
 end
 
 return M

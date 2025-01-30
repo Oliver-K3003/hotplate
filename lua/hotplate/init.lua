@@ -13,8 +13,10 @@ M.setup = function()
     end
 end
 
-M.addBP = function()
-    local name = utils.getName('Enter boilierplate name: \n')
+M.addBP = function(name)
+    if name == nil then
+        name = utils.getName('Enter boilierplate name: \n')
+    end
 
     -- gathering starting and end position of selection
     local vStart = vim.fn.getpos(".")
@@ -32,24 +34,13 @@ M.addBP = function()
 end
 
 M.removeBP = function(name)
---    local name
-    local keys = utils.getKeys(BP_Table)
---    vim.ui.select(keys, {
---        prompt = 'Select boilierplate to delete',
---        format_item = function(item)
---            return (item)
---        end,
---    }, function(choice)
---        name = choice
---    end)
-
     BP_Table[name] = nil
     utils.writeUserData()
 end
 
 M.useBP = function(value)
     if BP_Table[value] then
-        vim.api.nvim_put(BP_Table[value], "", true, true)
+        vim.api.nvim_put(BP_Table[value], "l", true, false)
     else
         print('provided name is empty')
     end
