@@ -1,3 +1,4 @@
+local hp = require('hotplate')
 local utils = require('hotplate.utils')
 local M = {}
 
@@ -44,12 +45,13 @@ local function closeWindow()
     -- if window/buffer exists close it
     if vim.api.nvim_win_is_valid(M.winId) then
         vim.api.nvim_win_close(M.winId, true)
-        M.winId = nil
     end
-    if vim.api.nvim_buf_is_valid(M.bufId) then
+    local bufExists = vim.fn.bufexists(M.bufId) ~= 0
+    if(bufExists) then
         vim.api.nvim_buf_delete(M.bufId, {force = true})
-        M.bufId = nil
     end
+    M.bufId = nil
+    M.winId = nil
 end
 
 local function updateUi(buf)
@@ -60,7 +62,7 @@ end
 
 M.toggleFloat = function()
     -- if window exists close it
-    if M.winId ~= nil then
+    if M.winId ~= nil and vim.api.nvim_win_is_valid(M.winId) then
         closeWindow()
         return
     end
@@ -71,7 +73,8 @@ M.toggleFloat = function()
     M.winId = winInfo.windowId
     M.bufId = winInfo.bufferId
 
-    vim.api.nvim_set_option_value('buftype', 'nofile', {buf=M.bufId})
+    vim.api.nvim_set_option_value('buftype', 'nowrite', {buf=M.bufId})
+    vim.api.nvim_set_option_value('bufhidden', 'delete', {buf=M.bufId})
 
     -- set keymaps for closing, selecting, and deleting
     vim.api.nvim_buf_set_keymap(
@@ -109,13 +112,13 @@ M.selectItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
     M.toggleFloat()
-    require('hotplate').useBP(value)
+    hp.useBP(value)
 end
 
 M.deleteItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
-    require('hotplate').removeBP(value)
+    hp.removeBP(value)
     updateUi(M.bufId)
 end
 

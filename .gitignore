@@ -41,3 +41,6 @@ luac.out
 
 # Global Definitions
 .luarc.json
+
+# Plugin File (not needed now)
+/plugin/*

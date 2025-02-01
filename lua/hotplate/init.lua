@@ -19,13 +19,22 @@ M.addBP = function(name)
     end
 
     -- gathering starting and end position of selection
-    local vStart = vim.fn.getpos(".")
-    local vEnd = vim.fn.getpos("v")
+    local visEnd = vim.fn.getpos("v")[2]
+    local cursor = vim.fn.getpos(".")[2]
     -- start and end line only
-    local startPos = vStart[2]
-    local endPos = vEnd[2]
+    local startPos
+    local endPos
+    -- handling different methods of highlighting
+    if visEnd > cursor then
+        startPos = cursor
+        endPos = visEnd
+    else
+        startPos = visEnd
+        endPos=cursor
+    end
     -- gathering all selected terms into table
-    local totalSelect = vim.fn.getline(startPos, endPos)
+    -- startPos -1 b/c of indexing conflict b/w nvim & lua
+    local totalSelect = vim.api.nvim_buf_get_lines(0, startPos-1, endPos, false)
     -- non-blocking look for alternative
     vim.api.nvim_input("<esc>")
 
@@ -39,7 +48,6 @@ M.removeBP = function(name)
 end
 
 M.useBP = function(value)
-    print("" .. BP_Table "/n")
     vim.api.nvim_put(BP_Table[value], "", true, false)
 end
 
