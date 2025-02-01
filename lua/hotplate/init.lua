@@ -39,11 +39,8 @@ M.removeBP = function(name)
 end
 
 M.useBP = function(value)
-    if BP_Table[value] then
-        vim.api.nvim_put(BP_Table[value], "l", true, false)
-    else
-        print('provided name is empty')
-    end
+    print("" .. BP_Table "/n")
+    vim.api.nvim_put(BP_Table[value], "", true, false)
 end
 
 M.clearBP = function()

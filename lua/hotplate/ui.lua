@@ -1,4 +1,3 @@
-local hotplate = require('hotplate')
 local utils = require('hotplate.utils')
 local M = {}
 
@@ -16,7 +15,6 @@ local function createWindow()
     end
 
     -- window centering
-    vim.api.nvim_buf_set_option(bufId, "buftype", "acwrite")
     local ui = vim.api.nvim_list_uis()[1]
     local col = 15
     local row = 12
@@ -73,7 +71,16 @@ M.toggleFloat = function()
     M.winId = winInfo.windowId
     M.bufId = winInfo.bufferId
 
+    vim.api.nvim_set_option_value('buftype', 'nofile', {buf=M.bufId})
+
     -- set keymaps for closing, selecting, and deleting
+    vim.api.nvim_buf_set_keymap(
+    M.bufId,
+    "n",
+    "q",
+    "<Cmd>lua require('hotplate.ui').toggleFloat()<CR>",
+    { silent = true }
+    )
     vim.api.nvim_buf_set_keymap(
     M.bufId,
     "n",
@@ -102,13 +109,13 @@ M.selectItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
     M.toggleFloat()
-    hotplate.useBP(value)
+    require('hotplate').useBP(value)
 end
 
 M.deleteItem = function()
     local cursor = vim.api.nvim_win_get_cursor(M.winId)[1]-1
     local value = (vim.api.nvim_buf_get_lines(M.bufId, cursor, cursor+1, false))[1]
-    hotplate.removeBP(value)
+    require('hotplate').removeBP(value)
     updateUi(M.bufId)
 end
 
